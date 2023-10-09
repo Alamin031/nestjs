@@ -1,57 +1,67 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { Inject, Injectable } from '@nestjs/common';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { adminSignupDtoType } from 'src/admin/dto/admin.dto';
+import { PG_CONNECTION } from 'src/drizzle/constants';
+import * as schema from 'src/drizzle/schema';
 import * as bcrypt from 'bcrypt';
-import { Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
-import { User } from 'src/customer/user.entity';
-import { CreateUserDto, LoginUserDto } from 'src/customer/customer.dto';
+
+function DBConn() {
+  return Inject(PG_CONNECTION);
+}
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(User)
-    private readonly userRepo: Repository<User>,
-    private readonly jwtService: JwtService,
+    // eslint-disable-next-line no-unused-vars
+    @DBConn() private conn: NodePgDatabase<typeof schema>,
   ) {}
-
-  async signup(createUserDto: CreateUserDto): Promise<User> {
-    const salt = await bcrypt.genSalt();
-    createUserDto.password = await bcrypt.hash(createUserDto.password, salt);
-    return await this.userRepo.save(createUserDto);
-  }
-
-  async login(loginDto: LoginUserDto): Promise<{ accessToken: string }> {
-    const { email, password } = loginDto;
-
-    const user = await this.userRepo.findOne({ where: { email } });
-
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    const accessToken = this.jwtService.sign({ sub: user.id });
-
-    return { accessToken };
-  }
-
-  // Validate user by ID (usually called from JwtStrategy)
-  async validateUserById(userId: number): Promise<User | null> {
+  async adminsignup(data: adminSignupDtoType): Promise<any> {
     try {
-      const user = await this.userRepo.findOne({ where: { id: userId } });
+      const salt = await bcrypt.genSalt();
+      data.password = await bcrypt.hash(data.password, salt);
+      // const { email } = data;
 
-      if (user) {
-        return user;
-      }
+      const user = await this.conn.query.admin.findFirst();
+      console.log(user);
 
-      return null;
+      // if (user) {
+      //   throw new ConflictException('Email already exists');
+      // }
+      // const newUser = await this.conn.admin.insert(data).exec();
+      return 0;
     } catch (error) {
-      throw new Error('Error validating user');
+      throw error;
     }
   }
+  // //login and token jenerete
+  // async login(data: adminLoginDtoType): Promise<{ accessToken: string }> {
+  //   const { email, password } = data;
+  //   const user = await this.conn.query.admin.findFirst({
+  //     // where: {
+  //     //   email,
+  //     // },
+  //   });
+  //   if (!user) {
+  //     throw new Error('User not found');
+  //   }
+  //   const valid = await bcrypt.compare(password, user.password);
+  //   if (!valid) {
+  //     throw new Error('Invalid password');
+  //   }
+  //   const accessToken = 'token';
+  //   return { accessToken };
+  // }
+
+  // // Validate user by ID (usually called from JwtStrategy)
+  // async validateUserById(id: number): Promise<any> {
+  //   const user = await this.conn.query.admin.findFirst({
+  //     // where: {
+  //     //   id,
+  //     // },
+  //   });
+  //   if (!user) {
+  //     throw new Error('User not found');
+  //   }
+  //   return user;
+  // }
 }
