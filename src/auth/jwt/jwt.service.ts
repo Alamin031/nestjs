@@ -9,12 +9,12 @@ export class JwtService {
     return this.nestJwtService.sign(payload);
   }
 
-  async verifyToken(token: string): Promise<Record<string, any>> {
-    try {
-      const decoded = this.nestJwtService.verify(token);
-      return decoded;
-    } catch (error) {
-      throw new Error('Invalid token');
-    }
-  }
+  // async verifyToken(token: string): Promise<Record<string, any>> {
+  //   try {
+  //     const decoded = this.nestJwtService.verify(token);
+  //     return decoded;
+  //   } catch (error) {
+  //     throw new Error('Invalid token');
+  //   }
+  // }
 }

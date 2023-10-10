@@ -8,6 +8,7 @@ import { PassportModule } from '@nestjs/passport';
 import { UserModule } from './customer/user.module';
 import { DrizzleModule } from './drizzle/drizzle.module';
 import { ConfigModule } from '@nestjs/config';
+import { PrismaService } from './prisma/prisma.service';
 
 @Module({
   imports: [
@@ -33,6 +34,6 @@ import { ConfigModule } from '@nestjs/config';
     PassportModule.register({ defaultStrategy: 'jwt' }),
   ],
   controllers: [AppController],
-  providers: [AppService, JwtService],
+  providers: [AppService, JwtService, PrismaService],
 })
 export class AppModule {}
