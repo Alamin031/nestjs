@@ -9,45 +9,13 @@ import {
   Delete,
   Param,
   ParseIntPipe,
-  Post,
-  BadRequestException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { AuthService } from 'src/auth/auth.service';
 import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
-import { user1dtoType } from './dto/signup.dto';
 
 @Controller('user')
 export class UserController {
-  constructor(
-    private readonly userService: UserService,
-    private readonly authService: AuthService,
-  ) {}
-
-  @Post('register')
-  async registerUser(@Body() data: user1dtoType) {
-    const otp = this.userService.generateOTP();
-    await this.userService.sendOtpEmail(data.email, otp);
-    return { message: 'OTP sent to your email' };
-  }
-
-  @Post('verify-otp')
-  async verifyOTP(
-    @Body('email') email: string,
-    @Body('otp') otp: string,
-    @Body('name') name: string,
-    @Body('password') password: string,
-  ) {
-    const isOtpValid = this.userService.validateOtp(email, otp);
-
-    if (!isOtpValid) {
-      return { message: 'Invalid OTP' };
-    }
-
-    await this.userService.registerUser(email, name, password);
-
-    return { message: 'Registration successful' };
-  }
+  constructor(private readonly userService: UserService) {}
 
   @Get('profile')
   @UseGuards(JwtAuthGuard)
@@ -63,6 +31,7 @@ export class UserController {
       throw new NotFoundException('User not found');
     }
   }
+
   //update profile
   @Put('update')
   @UseGuards(JwtAuthGuard)
@@ -113,22 +82,5 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   async getAllUser(): Promise<object> {
     return await this.userService.getAllUser();
-  }
-  //password change
-  @Post('request')
-  async requestPasswordReset(@Body('email') email: string) {
-    return this.userService.createPasswordResetToken(email);
-  }
-  //password reset
-  @Put('reset/:token')
-  async resetPassword(
-    @Param('token') token: string,
-    @Body('password') password: string,
-  ) {
-    const isValid = await this.userService.validateToken(token);
-    if (!isValid) {
-      throw new BadRequestException('Invalid token');
-    }
-    return this.userService.resetPassword(token, password);
   }
 }

@@ -2,10 +2,11 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Param,
   Post,
+  Put,
   UnauthorizedException,
 } from '@nestjs/common';
-import { adminSignupDtoType } from 'src/admin/dto/admin.dto';
 import { AuthService } from 'src/auth/auth.service';
 import { SignupDtoType, loginDtoType } from 'src/customer/dto/signup.dto';
 
@@ -13,29 +14,62 @@ import { SignupDtoType, loginDtoType } from 'src/customer/dto/signup.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('signup')
-  async adminsignup(@Body() data: adminSignupDtoType) {
+  @Post('send-registration-otp')
+  async sendRegistrationOTP(@Body() data: { email: string }) {
     try {
-      const user = await this.authService.adminsignup(data);
-      return {
-        message: 'User registered successfully',
-        user,
-      };
+      const { email } = data;
+      await this.authService.sendRegistrationOTP(email);
+      return { message: 'OTP sent to your email' };
     } catch (error) {
-      throw new UnauthorizedException(error.message);
+      return { message: error.message };
     }
   }
-  @Post('create')
-  async createUser() {
+
+  @Post('register')
+  async verifyOTPAndRegister(
+    @Body()
+    data: {
+      email: string;
+      otp: string;
+      name: string;
+      password: string;
+    },
+  ) {
     try {
-      const user = await this.authService.createUser();
-      return {
-        message: 'User registered successfully',
-        user,
-      };
+      const { email, otp, name, password } = data;
+
+      const isOtpValid = await this.authService.validateRegistrationOTP(
+        email,
+        otp,
+      );
+
+      if (!isOtpValid) {
+        return { message: 'Invalid OTP' };
+      }
+
+      await this.authService.registerUser(email, name, password);
+
+      return { message: 'Registration successful' };
     } catch (error) {
-      throw new BadRequestException(error.message);
+      return { message: error.message };
     }
+  }
+  //password change
+  @Post('forget')
+  async requestPasswordReset(@Body('email') email: string) {
+    return this.authService.createPasswordResetToken(email);
+  }
+  //password reset
+  @Put('reset/:otp')
+  async resetPassword(
+    @Param('otp') otp: string,
+    @Body('password') password: string,
+  ) {
+    const isValid = await this.authService.validateToken(otp);
+    if (!isValid) {
+      throw new BadRequestException('Invalid otp');
+    }
+    return this.authService.resetPassword(otp, password);
   }
   @Post('usersignup')
   async usersignup(@Body() data: SignupDtoType) {
