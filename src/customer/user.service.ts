@@ -5,9 +5,7 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UserService {
-  constructor(
-    private prisma: PrismaService, // eslint-disable-next-line no-unused-vars
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
   //get profile
   async getProfile(id: number): Promise<User> {

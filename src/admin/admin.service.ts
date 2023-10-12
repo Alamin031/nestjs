@@ -1,30 +1,26 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-// import { SignupDtoType } from 'src/customer/dto/signup.dto';
-import { PG_CONNECTION } from 'src/drizzle/constants';
-import * as schema from 'src/drizzle/schema';
-
-function DBConn() {
-  return Inject(PG_CONNECTION);
-}
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { Admin } from '@prisma/client';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class AdminService {
-  constructor(
-    // eslint-disable-next-line no-unused-vars
-    @DBConn() private conn: NodePgDatabase<typeof schema>,
-  ) {}
+  constructor(private prisma: PrismaService) {}
 
-  //show profile by id
-  // async getAdminById(id: number): Promise<SignupDtoType> {
-  //   const user = await this.conn.query.admin.findFirst({
-  //     // where: {
-  //     //   id,
-  //     // },
-  //   });
-  //   if (!user) {
-  //     throw new Error('User not found');
-  //   }
-  //   return user;
-  // }
+  async getProfile(id: number): Promise<Admin> {
+    try {
+      console.log('id:', id);
+      const profile = await this.prisma.admin.findUnique({
+        where: {
+          id: id,
+        },
+      });
+      console.log('profile:', profile);
+      if (!profile) {
+        throw new NotFoundException('admin not found');
+      }
+      return profile;
+    } catch (error) {
+      throw error;
+    }
+  }
 }

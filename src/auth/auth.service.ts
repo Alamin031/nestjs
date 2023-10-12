@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { SignupDtoType, loginDtoType } from 'src/customer/dto/signup.dto';
+import { loginDtoType } from 'src/customer/dto/signup.dto';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 import { sendEmail } from 'src/middleware/sendemail';
+import { adminSignupDtoType } from 'src/admin/dto/admin.dto';
 
 @Injectable()
 export class AuthService {
@@ -194,16 +195,17 @@ export class AuthService {
       },
     });
   }
-  async usersignup(data: SignupDtoType): Promise<SignupDtoType> {
+  async adminsignup(data: adminSignupDtoType): Promise<any> {
     try {
       const salt = await bcrypt.genSalt();
       data.password = await bcrypt.hash(data.password, salt);
 
-      const newUser = await this.prisma.user.create({
+      const newUser = await this.prisma.admin.create({
         data: {
           name: data.name,
           email: data.email,
           password: data.password,
+          permissions: data.permissions,
         },
       });
 
@@ -212,7 +214,26 @@ export class AuthService {
       throw error;
     }
   }
-  //login and token jenerete
+  //admin login and token jenerete
+  async adminlogin(data: loginDtoType): Promise<{ accessToken: string }> {
+    const { email, password } = data;
+    const admin = await this.prisma.admin.findFirst({
+      where: {
+        email,
+      },
+    });
+    if (!admin) {
+      throw new Error('Admin not found');
+    }
+    const valid = await bcrypt.compare(password, admin.password);
+    if (!valid) {
+      throw new Error('Invalid password');
+    }
+    const accessToken = this.jwtService.sign({ sub: admin.id });
+    console.log('accessToken:', accessToken);
+    return { accessToken };
+  }
+  //user login and token jenerete
   async login(data: loginDtoType): Promise<{ accessToken: string }> {
     const { email, password } = data;
     const user = await this.prisma.user.findFirst({
@@ -241,5 +262,17 @@ export class AuthService {
       throw new Error('User not found');
     }
     return user;
+  }
+
+  async validateAdminById(id: number): Promise<any> {
+    const admin = await this.prisma.admin.findFirst({
+      where: {
+        id,
+      },
+    });
+    if (!admin) {
+      throw new Error('Admin not found');
+    }
+    return admin;
   }
 }

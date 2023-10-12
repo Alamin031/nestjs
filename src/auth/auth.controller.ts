@@ -7,8 +7,9 @@ import {
   Put,
   UnauthorizedException,
 } from '@nestjs/common';
+import { adminSignupDtoType } from 'src/admin/dto/admin.dto';
 import { AuthService } from 'src/auth/auth.service';
-import { SignupDtoType, loginDtoType } from 'src/customer/dto/signup.dto';
+import { loginDtoType } from 'src/customer/dto/signup.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -71,18 +72,34 @@ export class AuthController {
     }
     return this.authService.resetPassword(otp, password);
   }
-  @Post('usersignup')
-  async usersignup(@Body() data: SignupDtoType) {
+  @Post('adminsignup')
+  async adminsignup(@Body() data: adminSignupDtoType) {
     try {
-      const user = await this.authService.usersignup(data);
+      const user = await this.authService.adminsignup(data);
       return {
-        message: 'User registered successfully',
+        message: 'admin registered successfully',
         user,
       };
     } catch (error) {
       throw new BadRequestException(error.message);
     }
   }
+
+  //admin login
+  @Post('adminlogin')
+  async adminlogin(@Body() data: loginDtoType) {
+    try {
+      const admin = await this.authService.adminlogin(data);
+      return {
+        message: 'admin login successfully',
+        admin,
+      };
+    } catch (error) {
+      throw new UnauthorizedException(error.message);
+    }
+  }
+
+  //customer login
   @Post('login')
   async login(@Body() data: loginDtoType) {
     try {

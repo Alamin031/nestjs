@@ -11,14 +11,14 @@ import {
   ParseIntPipe,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
+import { UserJwtAuthGuard } from 'src/auth/jwt/user.jwt.guard';
 
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get('profile')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserJwtAuthGuard)
   async getProfilee(@Request() request): Promise<any> {
     const userId = request.user.id;
     try {
@@ -34,7 +34,7 @@ export class UserController {
 
   //update profile
   @Put('update')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserJwtAuthGuard)
   async updateProfile(@Request() request, @Body() data: any): Promise<any> {
     const userId = request.user.id;
     try {
@@ -49,7 +49,7 @@ export class UserController {
   }
   //delete profile
   @Delete('delete')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserJwtAuthGuard)
   async deleteProfile(@Request() request): Promise<any> {
     const userId = request.user.id;
     try {
@@ -64,7 +64,7 @@ export class UserController {
   }
   //update profile by id
   @Put('update/:id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserJwtAuthGuard)
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updated_data: any,
@@ -73,13 +73,13 @@ export class UserController {
   }
   //delete profile by id
   @Delete('delete/:id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserJwtAuthGuard)
   async delete(@Param('id', ParseIntPipe) id: number): Promise<object> {
     return await this.userService.delete(id);
   }
   //gel all user
   @Get('user')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(UserJwtAuthGuard)
   async getAllUser(): Promise<object> {
     return await this.userService.getAllUser();
   }

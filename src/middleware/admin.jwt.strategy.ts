@@ -1,9 +1,10 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
-import { AuthService } from '../auth/auth.service';
+import { AuthService } from 'src/auth/auth.service';
+
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
+export class AdminJwtStrategy extends PassportStrategy(Strategy, 'admin') {
   constructor(private readonly authService: AuthService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -12,12 +13,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    const user = await this.authService.validateUserById(payload.sub);
-    console.log('user', user);
-    if (!user) {
-      throw new UnauthorizedException('Invalid token');
+    const admin = await this.authService.validateAdminById(payload.sub);
+    console.log('admin Profile:', admin);
+
+    if (!admin) {
+      throw new UnauthorizedException('Invalid admin token');
     }
-    console.log('payload', payload);
-    return user;
+    return admin;
   }
 }
