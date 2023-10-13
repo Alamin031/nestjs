@@ -9,6 +9,7 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaService } from './prisma/prisma.service';
 import { DomainModule } from './Domain/domain.module';
 import { AdminModule } from './admin/admin.modul';
+import { ChatbotModule } from './chatbot/chatbot.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { AdminModule } from './admin/admin.modul';
     UserModule,
     AuthModule,
     DomainModule,
+    ChatbotModule,
     ConfigModule.forRoot({ isGlobal: true }),
     JwtModule.register({
       secret: 'secret',

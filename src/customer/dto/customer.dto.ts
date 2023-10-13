@@ -43,3 +43,33 @@ export class UpdateUserDto {
   @IsOptional()
   profilePicture?: string;
 }
+
+export class chatbotDto {
+  @IsString()
+  @IsNotEmpty({ message: '😓  name should not be empty 😓' })
+  name: string;
+
+  @IsString()
+  @IsNotEmpty({ message: '😓  greetingsSMS should not be empty 😓' })
+  greetingsSMS: string;
+
+  // @IsString({ message: '😓  icone must be a string 😓' })
+  icone: string;
+}
+
+export class ChatbotDto1 {
+  @IsString()
+  @IsNotEmpty({ message: '😓  name should not be empty 😓' })
+  name: string;
+
+  @IsString()
+  @IsNotEmpty({ message: '😓  greetingsSMS should not be empty 😓' })
+  greetingsSMS: string;
+
+  icone: string;
+
+  files: CreateFileDto[]; // Define a DTO for files, assuming an array of files
+}
+export class CreateFileDto {
+  path: string;
+}
