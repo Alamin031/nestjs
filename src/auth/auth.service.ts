@@ -117,20 +117,20 @@ export class AuthService {
     }
   }
 
-  async createPasswordResetToken(email: string): Promise<void> {
+  async createPasswordResetToken(email: string): Promise<any> {
     const otp = this.generateOTP();
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + 1);
 
-    await this.prisma.oTP.create({
+    const newOtp = await this.prisma.oTP.create({
       data: {
         email,
         otp,
         expiresAt,
       },
     });
-
     await this.sendResetEmail(email, otp); // Send the reset email
+    return newOtp;
   }
   async sendResetEmail(email: string, otp: string): Promise<void> {
     const emailContent = `Your OTP for password reset is: ${otp}`;
@@ -154,6 +154,7 @@ export class AuthService {
   //     throw new Error('Error sending reset email');
   //   }
   // }
+  //validate otp by email
 
   async validateToken(otp: string): Promise<boolean> {
     const resetEntry = await this.prisma.oTP.findFirst({

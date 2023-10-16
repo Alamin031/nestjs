@@ -23,4 +23,40 @@ export class AdminService {
       throw error;
     }
   }
+  //update profile by id
+  async updateProfile(id: number, data: any): Promise<Admin> {
+    try {
+      const profile = await this.prisma.admin.update({
+        where: {
+          id: id,
+        },
+        data: {
+          ...data,
+        },
+      });
+      if (!profile) {
+        throw new NotFoundException('admin not found');
+      }
+      return profile;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  //delete profile by id
+  async deleteProfile(id: number): Promise<Admin> {
+    try {
+      const profile = await this.prisma.admin.delete({
+        where: {
+          id: id,
+        },
+      });
+      if (!profile) {
+        throw new NotFoundException('admin not found');
+      }
+      return profile;
+    } catch (error) {
+      throw error;
+    }
+  }
 }

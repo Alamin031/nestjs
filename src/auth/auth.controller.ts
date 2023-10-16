@@ -56,7 +56,7 @@ export class AuthController {
     }
   }
   //password change
-  @Post('forget')
+  @Post('forgettoken')
   async requestPasswordReset(@Body('email') email: string) {
     return this.authService.createPasswordResetToken(email);
   }
@@ -71,6 +71,25 @@ export class AuthController {
       throw new BadRequestException('Invalid otp');
     }
     return this.authService.resetPassword(otp, password);
+  }
+  //validate token
+  @Post('validate/:otp')
+  async validateToken(@Param('otp') otp: string) {
+    const isValid = await this.authService.validateToken(otp);
+    if (!isValid) {
+      throw new BadRequestException('Invalid otp');
+    }
+    return { message: 'valid otp' };
+  }
+  @Post('validatee')
+  async validateToken1(@Body('otp') otp: string) {
+    const isValid = await this.authService.validateToken(otp);
+    console.log(isValid);
+    console.log(otp);
+    if (!isValid) {
+      throw new BadRequestException('Invalid otp');
+    }
+    return { message: 'valid otp' };
   }
   @Post('adminsignup')
   async adminsignup(@Body() data: adminSignupDtoType) {
