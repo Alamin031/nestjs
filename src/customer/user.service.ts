@@ -34,7 +34,7 @@ export class UserService {
           id: id,
         },
         data: {
-          name: data.name,
+          firstName: data.firstName,
           email: data.email,
           password: data.password,
         },
@@ -74,7 +74,7 @@ export class UserService {
           id: id,
         },
         data: {
-          name: data.name,
+          firstName: data.firstName,
           email: data.email,
           password: data.password,
         },

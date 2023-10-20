@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Admin" ADD COLUMN     "isOTP" BOOLEAN NOT NULL DEFAULT false;

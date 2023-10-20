@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { loginDtoType } from 'src/customer/dto/signup.dto';
+import { SignupDtoType, loginDtoType } from 'src/customer/dto/signup.dto';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
 import { sendEmail } from 'src/middleware/sendemail';
@@ -23,10 +23,10 @@ export class AuthService {
 
   async sendRegistrationSuccessEmail(user: User): Promise<void> {
     const emailContent = `
-      <p>Dear ${user.name},</p>
+      <p>Dear ${user.firstName},</p>
       <p>Your registration was successful. Welcome to our platform!</p>
       <p>Email: ${user.email}</p>
-      <p>Name: ${user.name}</p>
+      <p>Name: ${user.firstName}</p>
     `;
 
     try {
@@ -76,32 +76,46 @@ export class AuthService {
   }
 
   async registerUser(
-    email: string,
-    name: string,
-    password: string,
+    files: Express.Multer.File[],
+    signup: SignupDtoType,
   ): Promise<User> {
     const existingUser = await this.prisma.user.findUnique({
-      where: { email },
+      where: { email: signup.email },
     });
 
     if (existingUser) {
       throw new Error('Email already registered');
     }
-
+    let avatar = files.find((file) => file.fieldname === 'profile');
+    if (!avatar) {
+      avatar = null;
+    }
     const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(password, salt);
-
+    const hashedPassword = await bcrypt.hash(signup.password, salt);
+    // Parse 'age' and 'Visits' as integers
+    const age = parseInt(signup.age, 10);
+    const Visits = parseInt(signup.Visits, 10);
     const newUser = await this.prisma.user.create({
       data: {
-        email,
-        name,
+        email: signup.email,
+        firstName: signup.firstName,
+        lastName: signup.lastName,
+        age: age,
+        Visits: Visits,
         password: hashedPassword,
+        avatar: avatar.filename,
       },
     });
 
-    await this.deleteRegistrationOTP(email);
+    await this.deleteRegistrationOTP(signup.email);
 
     await this.sendRegistrationSuccessEmail(newUser);
+    // files.forEach((file) => {
+    //   console.log(file);
+    //   const filePath = file.path;
+    //   console.log(filePath);
+    //   fs.unlinkSync(filePath);
+    // });
 
     return newUser;
   }
@@ -167,7 +181,57 @@ export class AuthService {
     }
     return true;
   }
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+  async validateTokenAndSetIsOTP(otp: string): Promise<boolean> {
+    const otpEntry = await this.prisma.oTP.findFirst({
+      where: {
+        otp,
+      },
+    });
+
+    if (!otpEntry || otpEntry.expiresAt < new Date()) {
+      return false;
+    }
+
+    const email = otpEntry.email;
+    await this.prisma.admin.update({
+      where: { email },
+      data: {
+        isOTP: true,
+      },
+    });
+    await this.prisma.oTP.delete({
+      where: {
+        otp,
+      },
+    });
+    return true;
+  }
+
+  async resetPasswordd(email: string, newPassword: string): Promise<boolean> {
+    const admin = await this.prisma.admin.findUnique({
+      where: { email },
+    });
+    if (admin && admin.isOTP) {
+      const salt = await bcrypt.genSalt();
+      console.log('password:', newPassword);
+      const password = await bcrypt.hash(newPassword, salt);
+      console.log('password:', password);
+      await this.prisma.admin.update({
+        where: { email },
+        data: {
+          password,
+          isOTP: false,
+        },
+      });
+
+      return true;
+    }
+
+    return false;
+  }
+  /////////////////////////////////////////////////////////////////////////////////////////////
   async resetPassword(otp: string, newPassword: string): Promise<void> {
     const resetEntry = await this.prisma.oTP.findFirst({
       where: {

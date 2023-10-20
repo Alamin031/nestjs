@@ -10,6 +10,8 @@ import { PrismaService } from './prisma/prisma.service';
 import { DomainModule } from './Domain/domain.module';
 import { AdminModule } from './admin/admin.modul';
 import { ChatbotModule } from './chatbot/chatbot.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -24,6 +26,16 @@ import { ChatbotModule } from './chatbot/chatbot.module';
       signOptions: { expiresIn: '1d' },
     }),
     PassportModule.register({ defaultStrategy: 'jwt' }),
+    ServeStaticModule.forRoot(
+      // {
+      //   rootPath: join(__dirname, '..', 'public/uploads/profile'),
+      //   serveStaticOptions: { redirect: false, index: false },
+      // },
+      {
+        rootPath: join(__dirname, '..', 'public'),
+        serveStaticOptions: { redirect: false, index: false },
+      },
+    ),
   ],
   controllers: [AppController],
   providers: [AppService, JwtService, PrismaService],

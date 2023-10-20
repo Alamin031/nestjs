@@ -5,7 +5,7 @@ export const multerOptions = (field: string) => {
   return {
     storage: diskStorage({
       destination: (req, file, cb) => {
-        const destination = `./uploads/${file.fieldname}`;
+        const destination = `./public/uploads/${file.fieldname}`;
         cb(null, destination);
       },
       filename: (req, file, cb) => {
@@ -15,6 +15,7 @@ export const multerOptions = (field: string) => {
           .join('');
         const fileExtension = extname(file.originalname);
         const fileName = `${randomName}${fileExtension}`;
+        console.log('fileName:', fileName);
         cb(null, fileName);
       },
     }),
